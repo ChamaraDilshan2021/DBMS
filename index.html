@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMS Quiz</title>
+    
+    <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-text: #991b1b;
+            --accent: #7c3aed;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* --- SCREENS --- */
+        .screen { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MENU --- */
+        .menu-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .chapter-grid { display: grid; gap: 15px; margin-top: 30px; }
+        .chapter-btn {
+            background: white; border: 2px solid #e2e8f0; padding: 20px;
+            border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s;
+        }
+        .chapter-btn:hover { border-color: var(--primary); background: #eff6ff; transform: translateY(-2px); }
+
+        /* --- QUIZ --- */
+        .quiz-header {
+            background: var(--card-bg); padding: 15px 25px; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px;
+            display: flex; justify-content: space-between; font-weight: 600; color: #64748b;
+        }
+        .question-card {
+            background: var(--card-bg); padding: 30px; border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); margin-bottom: 20px;
+        }
+        .q-text { font-size: 1.35rem; margin-bottom: 25px; line-height: 1.5; font-weight: 600; color: #1e293b; }
+        .option {
+            display: block; width: 100%; text-align: left; padding: 18px; margin-bottom: 12px;
+            background: white; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 1.05rem; cursor: pointer; transition: all 0.2s; color: #334155;
+        }
+        .option:hover:not(:disabled) { border-color: var(--primary); background: #f1f5f9; }
+        .option.correct { border-color: var(--success-text); background-color: var(--success-bg); color: var(--success-text); }
+        .option.incorrect { border-color: var(--error-text); background-color: var(--error-bg); color: var(--error-text); }
+
+        /* --- AI SECTION --- */
+        .ai-box {
+            margin-top: 25px; background: #fbfbfe; border: 1px solid #e9d5ff;
+            border-radius: 12px; padding: 20px; display: none;
+        }
+        .ai-box.show { display: block; animation: slideDown 0.3s ease; }
+        .ai-header {
+            color: var(--accent); font-weight: 700; font-size: 0.9rem;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e9d5ff; padding-bottom: 8px;
+        }
+        .ai-content { font-size: 0.95rem; line-height: 1.7; color: #475569; }
+        .ai-content strong { color: #1e293b; font-weight: 700; }
+        
+        /* Loading Spinner */
+        .loader {
+            display: flex; align-items: center; gap: 10px; color: #64748b; font-style: italic;
+        }
+        .spinner {
+            width: 16px; height: 16px; border: 2px solid #e9d5ff; 
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Controls */
+        .controls { display: flex; gap: 15px; margin-top: 30px; }
+        .btn {
+            padding: 14px 24px; border-radius: 10px; border: none; font-weight: 600;
+            cursor: pointer; font-size: 1rem; flex: 1; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-ai { background: white; border: 2px solid var(--accent); color: var(--accent); flex: 0 0 auto; }
+        .btn-ai:hover { background: #faf5ff; }
+
+        /* --- RESULT --- */
+        .result-card { background: white; padding: 60px; border-radius: 20px; text-align: center; }
+        .score-big { font-size: 5rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <div id="screen-menu" class="screen active">
+        <div class="menu-card">
+            <h1 style="color: var(--primary-dark);">DBMS Quiz</h1>
+            <p style="color: #64748b;">Powered by Llama 3.3 (Groq)</p>
+            <div class="chapter-grid">
+                <button class="chapter-btn" onclick="startChapter('ch1')">
+                    <span>Introduction to databse and DBMS</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                </button>
+                <button class="chapter-btn" onclick="startChapter('ch2')">
+                    <span>Relational Data Model & Constraints</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                </button>
+                <button class="chapter-btn" onclick="startChapter('ch3')">
+                    <span>ER Modeling</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                </button>
+                <button class="chapter-btn" onclick="startChapter('ch4')">
+                    <span>ER Maping & Relational Schema</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                </button>
+                <button class="chapter-btn" onclick="startChapter('ch4')">
+                    <span>EER</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                  <button class="chapter-btn" onclick="startChapter('ch4')">
+                    <span>EER Maping & Relational Schema</span>
+                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:20px; font-size:0.8rem;">40 Qs</span>
+                </button>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <div class="quiz-header">
+            <span id="quiz-progress">Question 1/40</span>
+            <span style="cursor:pointer;" onclick="location.reload()">Exit</span>
+        </div>
+
+        <div class="question-card">
+            <div id="question-text" class="q-text"></div>
+            <div id="options-container"></div>
+
+            <div id="ai-container" class="ai-box">
+                <div class="ai-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 1 0 5 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 1 0 14 15.5 2.5 2.5 0 0 0 16.5 13"/></svg>
+                    AI Explanation
+                </div>
+                <div id="ai-content" class="ai-content"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-ai" onclick="fetchAIExplanation()">
+                    Ask AI
+                </button>
+                <button id="next-btn" class="btn btn-primary" onclick="nextQuestion()" disabled>
+                    Next Question
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div class="result-card">
+            <h2>Quiz Complete!</h2>
+            <div class="score-big" id="final-score">0%</div>
+            <p id="final-msg"></p>
+            <button class="btn btn-primary" onclick="location.reload()" style="margin-top:20px; max-width:200px;">Back to Menu</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const GROQ_API_KEY = "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";
+    const AI_MODEL = "llama-3.3-70b-versatile";
+
+    // --- DATABASE ---
+    const database = {
+        "ch1": [
+  {
+    [cite_start]"q": "In the context of the file-based approach, what specific limitation arises when the same data is stored by different programs, requiring multiple updates for a single change? [cite: 52, 54]",
+    "options": [
+      "Data Abstraction",
+      "Data Duplication and Inconsistency",
+      "Logical Data Independence",
+      "Concurrent Access Anomalies"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which component of the DBMS environment acts as the 'bridge' between the machine (hardware/software) and the human elements (people/procedures)? [cite: 421, 425]",
+    "options": [
+      "The Operating System",
+      "The Database Manager",
+      "Data",
+      "The Query Processor"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "According to the database characteristics, what is the term for the description of the database (data about data) stored in the DBMS catalog? [cite: 90, 387]",
+    "options": [
+      "Program-operation",
+      "Meta-data",
+      "User View",
+      "Transaction"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which level of the Three-Schema Architecture represents the community view of the database and describes what data is stored and the relationships among them? [cite: 300, 301]",
+    "options": [
+      "External Level",
+      "Internal Level",
+      "Physical Level",
+      "Conceptual Level"
+    ],
+    "correct": 4
+  },
+  {
+    [cite_start]"q": "What is the primary responsibility of the Database Administrator (DBA) regarding the database environment's primary resource? [cite: 137, 139]",
+    "options": [
+      "Designing application interfaces",
+      "Physical realization and authorizing access",
+      "Writing end-user queries",
+      "Manufacturing hardware components"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "During the Database Design Process, which phase is responsible for mapping the logical model directly to a specific DBMS and specifying storage structures? [cite: 583, 584]",
+    "options": [
+      "Conceptual Design",
+      "Requirement Analysis",
+      "Physical Design",
+      "System Definition"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "Logical Data Independence is defined as the capacity to change the conceptual schema without having to change which of the following? [cite: 365]",
+    "options": [
+      "The Internal Schema",
+      "The Physical Storage",
+      "The External Schemas and application programs",
+      "The Database Administrator"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "Which internal software component of the DBMS is responsible for managing the allocation of storage space on the disk and locating blocks containing required records? [cite: 441, 442]",
+    "options": [
+      "Query Processor",
+      "DDL Compiler",
+      "File Manager",
+      "Dictionary Manager"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "What is the specific term used to describe the actual data stored in a database at a particular moment in time? [cite: 227]",
+    "options": [
+      "Database Schema",
+      "Database Instance (or State)",
+      "Meta-data",
+      "Data Model"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which type of database user is typically unaware of the DBMS and accesses data through specially written application programs using simple commands? [cite: 174, 175]",
+    "options": [
+      "Database Designers",
+      "Sophisticated Users",
+      "System Analysts",
+      "Naïve Users"
+    ],
+    "correct": 4
+  },
+  {
+    [cite_start]"q": "In the database design process, what is the output of the 'Logical Design' phase? [cite: 572]",
+    "options": [
+      "A set of functional requirements",
+      "A database schema in the implementation data model of the DBMS",
+      "A physical file organization plan",
+      "A high-level conceptual schema independent of implementation"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which DBMS language is used by the DBA to specify the conceptual schema and define the database structure? [cite: 372]",
+    "options": [
+      "DML (Data Manipulation Language)",
+      "DDL (Data Definition Language)",
+      "Host Language",
+      "High-level Procedural Language"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "What is the main function of the 'Conceptual/Internal Mapping' in the DBMS architecture? [cite: 333]",
+    "options": [
+      "To map user views to the conceptual schema",
+      "To enable the DBMS to find actual physical records constituting a logical record",
+      "To connect the DBA to the end-users",
+      "To translate high-level queries into application code"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which limitation of file-based systems involves the structure of the file being embedded in the application programs, making them dependent on each other? [cite: 66, 67]",
+    "options": [
+      "Data Duplication",
+      "Incompatible file formats",
+      "Concurrent-access anomalies",
+      "Security problems"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which component of the DBMS performs the task of enforcing constraints to maintain consistency, integrity, and security? [cite: 436, 438]",
+    "options": [
+      "The Database Manager (DM)",
+      "The DDL Compiler",
+      "The End User",
+      "The Disk Manager"
+    ],
+    "correct": 1
+  },
+  {
+    [cite_start]"q": "In the context of database design, what does 'System Definition' establish? [cite: 537, 538]",
+    "options": [
+      "The detailed indexes for the database",
+      "The scope and boundaries of the database application",
+      "The programming language to be used",
+      "The final testing protocols"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Physical Data Independence allows the DBA to change the internal schema without affecting which level? [cite: 366]",
+    "options": [
+      "The Conceptual Schema",
+      "The Physical Disk",
+      "The Operating System",
+      "The Hardware Configuration"
+    ],
+    "correct": 1
+  },
+  {
+    [cite_start]"q": "Which category of data models provides concepts that are close to the way many users perceive data (also called entity-based)? [cite: 216]",
+    "options": [
+      "Physical Data Models",
+      "Conceptual Data Models",
+      "Implementation Data Models",
+      "Low-level Data Models"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "What is the primary function of the DML Preprocessor? [cite: 449, 450]",
+    "options": [
+      "To store metadata in the catalog",
+      "To convert embedded DML statements into standard host language function calls",
+      "To allocate storage space on the disk",
+      "To design the physical database structure"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which of the following is listed as a disadvantage of using a DBMS? [cite: 480]",
+    "options": [
+      "Reduced data redundancy",
+      "Higher impact of a failure",
+      "Improved data sharing",
+      "Enforcement of standards"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "The database schema is also technically referred to as the: [cite: 251]",
+    "options": [
+      "Extension",
+      "Intension",
+      "Instance",
+      "Observation"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which phase of the database design process involves determining the data types, keys, constraints, and triggers using DBMS syntax? [cite: 593, 594]",
+    "options": [
+      "Requirement Analysis",
+      "Conceptual Design",
+      "Logical Design",
+      "Physical Design"
+    ],
+    "correct": 4
+  },
+  {
+    [cite_start]"q": "What is the distinct characteristic of 'Program-data independence' in a DBMS? [cite: 388]",
+    "options": [
+      "It allows changing storage structures without changing access programs",
+      "It requires all programs to be written in C++",
+      "It prevents users from accessing the database concurrently",
+      "It ensures data is always duplicated for safety"
+    ],
+    "correct": 1
+  },
+  {
+    [cite_start]"q": "Who are the 'Sophisticated Users' of a database system? [cite: 180, 181]",
+    "options": [
+      "Users who only use menu-driven options",
+      "Checkout assistants in supermarkets",
+      "Users familiar with the DBMS facilities who may use high-level query languages",
+      "Managers who do not use computers"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "What is the main goal of the 'Conceptual Design' phase? [cite: 550, 552]",
+    "options": [
+      "To create a concise description of data requirements independent of implementation details",
+      "To map the data to a specific DBMS software",
+      "To define the physical file organization",
+      "To write the application code"
+    ],
+    "correct": 1
+  },
+  {
+    [cite_start]"q": "Which DBMS component converts DDL statements into a set of tables containing metadata? [cite: 452, 453]",
+    "options": [
+      "Query Processor",
+      "DDL Compiler",
+      "File Manager",
+      "DML Preprocessor"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Atomicity, a problem in file-based systems, refers to the requirement that: [cite: 74, 75]",
+    "options": [
+      "Data must be shared among all users",
+      "A transaction must happen in its entirety or not at all",
+      "Data must be encrypted",
+      "Files must be small in size"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "The 'External Level' of the Three-Schema Architecture describes: [cite: 291, 292]",
+    "options": [
+      "How the data is physically stored",
+      "The part of the database relevant to a particular user",
+      "The logical structure of the entire database",
+      "The operating system access methods"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "In the 'Logical Design' phase, what is a key step involved? [cite: 578]",
+    "options": [
+      "Interviewing customers",
+      "Normalizing the table structure to remove redundant attributes",
+      "Selecting the hardware brand",
+      "Creating the initial ER diagram"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "What does the 'Internal Level' of the database architecture describe? [cite: 311, 312]",
+    "options": [
+      "The user's view of the data",
+      "The community view of the data",
+      "The physical representation of the database on the computer",
+      "The semantic information about the data"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "Which type of DML is described as 'set-oriented' and 'declarative' (specifying what to retrieve rather than how)? [cite: 381]",
+    "options": [
+      "Low Level DML",
+      "Procedural DML",
+      "High Level DML",
+      "Assembly Language"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "What is 'Data Integrity' in the context of file-based vs. DBMS systems? [cite: 61, 62]",
+    "options": [
+      "The speed of data retrieval",
+      "The maintenance and assurance that data in a database are correct and consistent",
+      "The ability to hide data from users",
+      "The duplication of files across systems"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which logical database designer task involves identifying the data (entities and attributes) and relationships? [cite: 156, 157]",
+    "options": [
+      "Physical database design",
+      "Logical database design",
+      "Application programming",
+      "Network administration"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "The Query Processor's role is to: [cite: 432, 434]",
+    "options": [
+      "Manage physical disk space",
+      "Interpret user queries and convert them into operations for the Database Manager",
+      "Compile the schema definitions",
+      "Backup the database"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Concurrency in a database system is defined as: [cite: 72]",
+    "options": [
+      "The ability to store large amounts of data",
+      "The ability to allow multiple users to access the same record without errors",
+      "The process of backing up data",
+      "The separation of programs from data"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "What is the first step in the Database Design Process? [cite: 515]",
+    "options": [
+      "Physical Design",
+      "Logical Design",
+      "Requirement Gathering and Analysis",
+      "Testing"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "What defines the 'valid state' of a database? [cite: 248]",
+    "options": [
+      "A state containing no data",
+      "A state that satisfies the structure and constraints of the database",
+      "A state immediately after installation",
+      "A state where all users are logged out"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "Which mapping enables the DBMS to map names in the user's view onto the relevant part of the conceptual schema? [cite: 334]",
+    "options": [
+      "Conceptual/Internal Mapping",
+      "Physical/Logical Mapping",
+      "External/Conceptual Mapping",
+      "Network/Local Mapping"
+    ],
+    "correct": 3
+  },
+  {
+    [cite_start]"q": "In the DBMS environment, 'Procedures' refer to: [cite: 411, 412]",
+    "options": [
+      "The machine code of the DBMS",
+      "Instructions and rules applied to the design and use of the database",
+      "The electrical wiring of the hardware",
+      "The query languages used by programmers"
+    ],
+    "correct": 2
+  },
+  {
+    [cite_start]"q": "The data description stored in the system log or data dictionary is known as: [cite: 90]",
+    "options": [
+      "Micro data",
+      "Meta data",
+      "Beta data",
+      "Raw data"
+    ],
+    "correct": 2
+  }
+],
+  <!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+        "ch2": [
+  {
+    "q": "According to the origins of the Relational Model, who proposed the model in 1970 and subsequently won the ACM Turing Award?",
+    "options": [
+      "Peter Chen",
+      "Dr. E.F. Codd",
+      "Raymond Boyce",
+      "Christopher Date"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the formal definitions of the Relational Model, what term corresponds to the informal concept of a 'Column Header' or 'Field'?",
+    "options": [
+      "Tuple",
+      "Relation",
+      "Attribute",
+      "Cardinality"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What does the 'Degree' (or Arity) of a relation specifically represent?",
+    "options": [
+      "The number of tuples in the relation",
+      "The number of attributes in its relation schema",
+      "The size of the storage file",
+      "The number of foreign keys defined"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which term describes the number of tuples (rows) currently contained in a relation?",
+    "options": [
+      "Degree",
+      "Domain",
+      "Cardinality",
+      "Intension"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "A relation schema R is often referred to as the 'Intension' of a relation. What is the characteristic of the Intension?",
+    "options": [
+      "It changes frequently with every update",
+      "It represents the specific population of data at a moment",
+      "It is not expected to change frequently",
+      "It is the set of all possible tuple combinations"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Formally, a relation is formed over the ________ of the sets of domains.",
+    "options": [
+      "Union",
+      "Intersection",
+      "Cartesian product",
+      "Difference"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "If a database state satisfies all the integrity constraints specified in the schema, it is referred to as a:",
+    "options": [
+      "Populated State",
+      "Valid State",
+      "Normalized State",
+      "Referenced State"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which property is a fundamental characteristic of a Relation regarding its values?",
+    "options": [
+      "Cells can contain lists of values",
+      "Values in a tuple must be composite",
+      "Each cell contains exactly one atomic (indivisible) value",
+      "Null values are not allowed in any column"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In the context of Relational Model Constraints, 'Entity Integrity' specifically enforces that:",
+    "options": [
+      "Foreign keys must not be null",
+      "Primary key attributes cannot have null values in any tuple",
+      "All tuples must be distinct",
+      "Domains must be consistent"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "A 'Superkey' is defined as:",
+    "options": [
+      "A minimal set of attributes that uniquely identifies a tuple",
+      "Any attribute or set of attributes that uniquely identifies a tuple, potentially containing extra attributes",
+      "A key that links two tables together",
+      "The primary key selected by the designer"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "How is a 'Key' (or Candidate Key) different from a 'Superkey'?",
+    "options": [
+      "A Key allows null values, a Superkey does not",
+      "A Key is a 'minimal' Superkey; removing any attribute destroys its uniqueness property",
+      "A Key is used for sorting, a Superkey is used for identification",
+      "There is no difference; they are synonyms"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a relation schema has more than one key, each of them is called a:",
+    "options": [
+      "Primary Key",
+      "Foreign Key",
+      "Candidate Key",
+      "Alternate Domain"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which constraint is violated if a tuple is inserted with a Primary Key value that already exists in the relation?",
+    "options": [
+      "Referential Integrity Constraint",
+      "Key Constraint (Uniqueness)",
+      "Domain Constraint",
+      "Semantic Integrity Constraint"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Referential Integrity is a constraint that involves:",
+    "options": [
+      "A single relation checking for nulls",
+      "Two relations (referencing and referenced)",
+      "Checking the data type of a column",
+      "Ensuring atomic values"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In a Referential Integrity constraint, the Foreign Key (FK) in the referencing relation must match:",
+    "options": [
+      "Any attribute in the referenced relation",
+      "The Foreign Key of the referenced relation",
+      "An existing Primary Key value in the referenced relation, or be Null",
+      "The Schema name of the referenced relation"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "When does the 'Entity Integrity' rule prevent a Foreign Key from being Null?",
+    "options": [
+      "When the Foreign Key is also part of the Primary Key of the referencing relation",
+      "When the referenced table has no records",
+      "When the domain is an integer",
+      "Foreign Keys can never be Null"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Which of the following is an example of an 'Inherent Model-Based Constraint'?",
+    "options": [
+      "Supplier status cannot be greater than 50",
+      "A relation cannot have duplicate tuples",
+      "Primary Key cannot be Null",
+      "Foreign Key must match Primary Key"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What type of constraints are 'Semantic Integrity Constraints' (e.g., 'salary cannot be greater than manager's salary')?",
+    "options": [
+      "Schema-based constraints",
+      "Inherent constraints",
+      "Application-based (General) constraints",
+      "Key constraints"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In update operations, what is the 'Cascade' action used for?",
+    "options": [
+      "To cancel the operation that causes a violation",
+      "To trigger additional updates so the violation is corrected (e.g., deleting referencing tuples)",
+      "To set the violating fields to Null",
+      "To ignore the error and proceed"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If an attribute 'PhoneNo' is defined as a 10-digit number, and a user tries to insert 'Ten Digits' (text), which constraint is violated?",
+    "options": [
+      "Entity Integrity",
+      "Referential Integrity",
+      "Domain Constraint",
+      "Key Constraint"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "The 'Extension' of a relation is also known as:",
+    "options": [
+      "The Relation Schema",
+      "The Relation State or Instance",
+      "The Metadata",
+      "The Data Dictionary"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which symbol represents the Cartesian product in the formal definition of a relation?",
+    "options": [
+      "U",
+      "X (Cross)",
+      "Sigma",
+      "Pi"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the notation $t[Ai] = vi$, what does $t$ represent?",
+    "options": [
+      "The table name",
+      "The total count of rows",
+      "A specific tuple (row)",
+      "The time of insertion"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which of the following statements about NULL values is true according to the relation characteristics?",
+    "options": [
+      "NULL represents the number 0",
+      "NULL represents an empty string",
+      "NULL represents a value that is unknown or inapplicable",
+      "NULL is not allowed in any column except the Primary Key"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Regarding the ordering of tuples in a relation:",
+    "options": [
+      "Tuples are ordered by Primary Key",
+      "Tuples are ordered by insertion date",
+      "The order of tuples has no significance",
+      "Tuples are ordered alphabetically"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "If a DELETE operation violates a Referential Integrity constraint, which option would reject the deletion entirely?",
+    "options": [
+      "CASCADE",
+      "SET NULL",
+      "REJECT (or RESTRICT)",
+      "SET DEFAULT"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What is the result if you attempt to insert a tuple with a duplicate Primary Key value?",
+    "options": [
+      "The old tuple is overwritten",
+      "The new tuple is added as a duplicate",
+      "The DBMS rejects the insertion due to Key Constraint violation",
+      "The Primary Key is automatically incremented"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In the example $R(A1, A2)$ where $dom(A1) = \\{0, 1\\}$, is the value 2 allowed for A1?",
+    "options": [
+      "Yes, if it is atomic",
+      "No, it violates the Domain Constraint",
+      "Yes, if A2 is valid",
+      "No, unless specified in the Schema"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which SQL constructs are mentioned as ways to handle Semantic Integrity Constraints?",
+    "options": [
+      "SELECT and WHERE",
+      "TRIGGERS and ASSERTIONS",
+      "INSERT and DELETE",
+      "CREATE and DROP"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the 'referencing' relation in a foreign key relationship?",
+    "options": [
+      "The relation containing the Primary Key",
+      "The relation containing the Foreign Key (Child)",
+      "The relation that cannot be modified",
+      "The relation that is created first"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If $SK = (sno, sname, status)$ is a Superkey, is the subset $(sno, sname)$ guaranteed to be a Key?",
+    "options": [
+      "Yes, always",
+      "No, it depends if the subset is a minimal Superkey",
+      "Yes, because it is smaller",
+      "No, Superkeys cannot have subsets"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a Foreign Key in $R_1$ references $R_2$, and you delete a tuple in $R_2$ that is referenced by $R_1$, what happens under the 'SET NULL' option?",
+    "options": [
+      "The deletion is rejected",
+      "The referencing tuple in R1 is also deleted",
+      "The Foreign Key value in the referencing tuple in R1 is set to NULL",
+      "The Primary Key in R2 is set to NULL"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which of the following is NOT a valid update operation on a relation?",
+    "options": [
+      "INSERT a tuple",
+      "DELETE a tuple",
+      "MODIFY a tuple",
+      "INVERT a tuple"
+    ],
+    "correct": 3
+  },
+  {
+    "q": "In a schema diagram, a Referential Integrity constraint is typically visualized as:",
+    "options": [
+      "A directed arc from the referencing relation to the referenced relation",
+      "A double line between tables",
+      "A circle around the Foreign Key",
+      "A dashed line connecting all attributes"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Why are Primary Key values not allowed to be NULL (Entity Integrity)?",
+    "options": [
+      "Because they consume less storage",
+      "Because they are used to identify individual tuples uniquely",
+      "Because databases cannot index NULL values",
+      "Because SQL syntax forbids it"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Can a relation schema have more than one Foreign Key?",
+    "options": [
+      "No, only one per table",
+      "Yes, a relation can reference multiple other relations",
+      "Only if they reference the same table",
+      "No, it violates normalization"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When a constraint cannot be directly expressed in the schemas (DDL), it is classified as:",
+    "options": [
+      "Schema-based",
+      "Model-based",
+      "Application-based",
+      "Inherent"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "The domain of a Foreign Key must be the same as:",
+    "options": [
+      "The domain of the Primary Key it references",
+      "The domain of the first attribute in its own table",
+      "The string data type always",
+      "Any unique domain"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "In the example provided, if $SK = (sno)$ is a key, what is the status of $SK = (sno, sname)$?",
+    "options": [
+      "It is a Candidate Key",
+      "It is a Superkey but not a Key (not minimal)",
+      "It is not a Superkey",
+      "It is an Invalid Key"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What specific term describes the 'set of allowable values' for an attribute?",
+    "options": [
+      "Tuple",
+      "Schema",
+      "Domain",
+      "Range"
+    ],
+    "correct": 2
+  }
+],
+    <!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+
+        "ch4": [
+  {
+    "q": "In the context of ER modeling, what is the primary function of an 'Associative Entity'?",
+    "options": [
+      "To represent a relationship with a degree of 1",
+      "To represent a derived attribute calculated from other entities",
+      "To represent a many-to-many relationship that is expressed by another entity",
+      "To represent a weak entity that has no owner"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which type of connection trap occurs when a model represents a relationship between entity types, but the pathway between certain entity occurrences is ambiguous due to two or more 1:M relationships fanning out from the same entity?",
+    "options": [
+      "Chasm Trap",
+      "Fan Trap",
+      "Cyclic Trap",
+      "Recursive Trap"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "How is a 'Derived Attribute' diagrammatically represented in the Chen notation?",
+    "options": [
+      "A solid oval",
+      "A double oval",
+      "A dashed oval",
+      "A rectangular box"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In structural constraints notation (min, max), what does a value of (0, 1) signify regarding the participation of an entity in a relationship?",
+    "options": [
+      "Total participation, allowing multiple instances",
+      "Partial participation, allowing at most one instance",
+      "Total participation, allowing exactly one instance",
+      "Partial participation, allowing multiple instances"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What characterizes a 'Weak Entity Type' in an ER diagram?",
+    "options": [
+      "It has a primary key derived from its own attributes",
+      "It has no key attribute and is existence-dependent on an identifying entity",
+      "It participates only in many-to-many relationships",
+      "It is represented by a single rectangle in Chen notation"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If an attribute 'Degrees' for an Employee entity includes values like {B.Sc., M.Sc., PhD}, how is this attribute classified and denoted?",
+    "options": [
+      "Composite Attribute; denoted by a dashed oval",
+      "Derived Attribute; denoted by a solid oval",
+      "Multi-valued Attribute; denoted by a double oval",
+      "Simple Attribute; denoted by a rectangle"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "A 'Chasm Trap' is best described as a situation where:",
+    "options": [
+      "A pathway does not exist between certain entity occurrences due to optional participation",
+      "A pathway is ambiguous due to multiple 1:M relationships",
+      "An entity is related to itself in a recursive loop",
+      "A weak entity loses its owner entity"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "In a Ternary relationship (degree 3), such as 'SUPPLY' involving Supplier, Part, and Project, what does a single relationship instance (s, j, p) represent?",
+    "options": [
+      "Supplier s supplies Part p, and independently Supplier s supplies Project j",
+      "Supplier s supplies Part p to Project j",
+      "Project j buys Part p from any supplier",
+      "Part p is stored by Supplier s and used by Project j separately"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which notation is used to represent 'Total Participation' (Existence Dependency) in an ER diagram?",
+    "options": [
+      "A single line connecting the entity to the relationship",
+      "A double line connecting the entity to the relationship",
+      "A dashed line connecting the entity to the relationship",
+      "A crow's foot symbol"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the 'Degree' of a relationship type?",
+    "options": [
+      "The number of attributes in the relationship",
+      "The number of entities involved in the relationship",
+      "The cardinality ratio of the relationship",
+      "The minimum participation constraint"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When deciding between modeling a concept as an Entity or an Attribute (e.g., Phone Number), when is it preferable to model 'Phone' as an entity?",
+    "options": [
+      "When the phone number is a simple string",
+      "When we need to store extra information about the phone (e.g., location, type) or share it",
+      "When every employee has exactly one phone number",
+      "When the phone number is a derived value"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In UML notation for ER modeling, how is a multiplicity of 'Zero or more' represented?",
+    "options": [
+      "0..1",
+      "1..*",
+      "0..*",
+      "1..1"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What is a 'Recursive Relationship'?",
+    "options": [
+      "A relationship where an entity is existence-dependent on another",
+      "A relationship where both participations are on the same entity type in different roles",
+      "A relationship connecting three different entity types",
+      "A relationship that causes a fan trap"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a relationship 'Manages' exists between Employee and Department, and every Department MUST have a manager, this is an example of:",
+    "options": [
+      "Partial Participation",
+      "Optional Participation",
+      "Total Participation (Mandatory)",
+      "Unary Relationship"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which of the following best describes the 'Cardinality Ratio' for a binary relationship?",
+    "options": [
+      "The minimum number of relationship instances an entity can participate in",
+      "The maximum number of relationship instances an entity can participate in",
+      "The number of attributes associated with the relationship",
+      "The number of entity types participating in the relationship"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the context of ER traps, how is a 'Fan Trap' typically resolved?",
+    "options": [
+      "By removing the relationship entirely",
+      "By adding a new recursive relationship",
+      "By restructuring the original ER model to represent the correct association between entities",
+      "By making all participations optional"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What symbol in the Chen notation represents a 'Weak Entity Identifying Relationship'?",
+    "options": [
+      "A single diamond",
+      "A double diamond",
+      "A double rectangle",
+      "A dashed diamond"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Consider an attribute 'Address' composed of (Street, City, Zip). How is this classified?",
+    "options": [
+      "Multi-valued Attribute",
+      "Composite Attribute",
+      "Derived Attribute",
+      "Key Attribute"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In Barker's notation, how is a mandatory relationship represented?",
+    "options": [
+      "A dashed line",
+      "A solid line",
+      "A double line",
+      "A circle at the end of the line"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Why is the distinction between 'Stored' and 'Derived' attributes important?",
+    "options": [
+      "Derived attributes are never shown in diagrams",
+      "Stored attributes are calculated from derived attributes",
+      "Derived attributes (e.g., Age) depend on stored attributes (e.g., BirthDate) and current data",
+      "There is no functional difference in implementation"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What does a 'Partial Key' identify in the context of a Weak Entity?",
+    "options": [
+      "It uniquely identifies weak entities globally",
+      "It identifies weak entities only when combined with the owner entity",
+      "It represents the foreign key of the owner",
+      "It is an optional attribute for the weak entity"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In Crow's Foot notation, what symbol represents 'One and only one' (Mandatory)?",
+    "options": [
+      "A circle and a crow's foot",
+      "Two vertical bars",
+      "A circle and a vertical bar",
+      "A crow's foot and a vertical bar"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the structural constraint notation (min, max), if min > 0, what does it imply?",
+    "options": [
+      "Partial Participation",
+      "Total Participation",
+      "Many-to-Many Cardinality",
+      "Recursive Relationship"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which of the following statements about N-ary relationships is true?",
+    "options": [
+      "An N-ary relationship is always equivalent to N binary relationships",
+      "An N-ary relationship is never equivalent to N binary relationships",
+      "In general, an N-ary relationship is not equivalent to N binary relationships",
+      "N-ary relationships cannot have attributes"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "If we model 'Manager' as a subclass of 'Employee' managing a 'Department', and include 'dbudget' in the Manager entity to avoid redundancy, we are resolving a design issue related to:",
+    "options": [
+      "Fan Traps",
+      "Entity versus Relationship modeling",
+      "Recursive relationships",
+      "Weak entity identification"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the example of a 'Small College Database', if a lecturer can teach on more than one course and many students enroll in many courses, the relationship between Student and Course is:",
+    "options": [
+      "One-to-One",
+      "One-to-Many",
+      "Many-to-Many",
+      "Unary"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which diagrammatic shape represents an 'Attribute' in Chen notation?",
+    "options": [
+      "Rectangle",
+      "Diamond",
+      "Oval",
+      "Line"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "If a division operates one or more branches, and a branch belongs to exactly one division, the relationship 'Operates' between Division and Branch is:",
+    "options": [
+      "1:1",
+      "1:M (Division : Branch)",
+      "M:1 (Division : Branch)",
+      "M:N"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the 'Mini-world' in ER modeling?",
+    "options": [
+      "The simplified diagram notation",
+      "The specific environment or reality being represented in the database",
+      "The smallest entity in the database",
+      "The memory storage limit of the DBMS"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When resolving a Chasm Trap, what is the usual solution?",
+    "options": [
+      "Removing the optional participation",
+      "Identifying and adding the missing relationship directly between entities",
+      "Converting the relationship to 1:1",
+      "Adding a weak entity"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In Crow's Foot notation, a 'Circle' symbol on the relationship line indicates:",
+    "options": [
+      "Mandatory participation",
+      "Optional participation",
+      "Multiplicity of many",
+      "Multiplicity of one"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "How is a 'Composite Key' different from a simple key?",
+    "options": [
+      "It allows null values",
+      "It consists of multiple attributes acting together to enforce uniqueness",
+      "It is used only in weak entities",
+      "It is a foreign key from another table"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "The notation '0..*' in UML corresponds to which Crow's Foot symbol?",
+    "options": [
+      "Two vertical bars",
+      "A circle and a crow's foot",
+      "A vertical bar and a crow's foot",
+      "A circle and a vertical bar"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the 'Company Database' example, if an employee works on multiple projects and we track 'Hours', where should the 'Hours' attribute be placed?",
+    "options": [
+      "On the Employee entity",
+      "On the Project entity",
+      "On the 'Works_On' relationship",
+      "On the Department entity"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "A relationship type can have its own attributes. This is most common in:",
+    "options": [
+      "1:1 relationships",
+      "1:M relationships",
+      "M:N relationships",
+      "Unary relationships"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In ER diagram notation, what does a 'Double Rectangle' represent?",
+    "options": [
+      "Strong Entity Type",
+      "Weak Entity Type",
+      "Associative Entity",
+      "Composite Attribute"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the structural constraint (min, max), the value 'max' must be:",
+    "options": [
+      "Greater than or equal to 1",
+      "Exactly 0",
+      "Less than min",
+      "Equal to min"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "If Student and Course are entities, and a Student 'Registers' for a Course, 'Registers' is a:",
+    "options": [
+      "Attribute",
+      "Entity",
+      "Relationship Type",
+      "Constraint"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What is the primary visual difference between Barker's notation and Chen notation for relationships?",
+    "options": [
+      "Barker's uses diamonds; Chen uses lines",
+      "Barker's does not use diamonds for relationships; it uses lines with text",
+      "Chen uses crow's feet; Barker's uses ovals",
+      "There is no difference"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a particular entity may not have an applicable value for an attribute (e.g., 'Apartment Number' for a house), what value is used?",
+    "options": [
+      "Zero",
+      "False",
+      "Null",
+      "Blank String"
+    ],
+    "correct": 2
+  }
+],
+    <!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+
+        "ch6": [
+  {
+    "q": "What is the primary output of the ER-to-Relational Mapping Algorithm?",
+    "options": [
+      "A conceptual data model",
+      "A relational database schema",
+      "A physical storage plan",
+      "An entity-relationship diagram"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In Step 1 of the mapping algorithm, how are composite attributes of a strong entity handled?",
+    "options": [
+      "They are mapped as a separate relation",
+      "They are ignored",
+      "Only their simple component attributes are included in the relation",
+      "They are stored as a single string field"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "When mapping a Weak Entity Type (Step 2), what constitutes the Primary Key of the resulting relation?",
+    "options": [
+      "The partial key of the weak entity alone",
+      "A unique surrogate key generated by the system",
+      "The combination of the owner's primary key and the weak entity's partial key",
+      "The foreign key of the owner entity only"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Which approach is generally preferred for mapping a binary 1:1 relationship when one side has total participation?",
+    "options": [
+      "Cross-reference relation approach",
+      "Merged relation approach",
+      "Foreign Key approach, placing the FK in the relation with total participation",
+      "Foreign Key approach, placing the FK in the relation with partial participation"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Under what specific condition is the 'Merged Relation' option suitable for mapping a binary 1:1 relationship?",
+    "options": [
+      "When both entities have partial participation",
+      "When both entities have total participation",
+      "When one entity is weak",
+      "When the relationship has many attributes"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In Step 4 (Mapping Binary 1:N Relationships), where should the foreign key be placed?",
+    "options": [
+      "In the relation representing the 1-side",
+      "In the relation representing the N-side",
+      "In a new separate relationship relation",
+      "In both relations"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "How is a recursive 1:N relationship (like 'Supervision' where an employee supervises many employees) mapped?",
+    "options": [
+      "By creating a new relation for the relationship",
+      "By adding a foreign key to the same relation referencing its own primary key",
+      "By merging the supervisor and supervisee into one tuple",
+      "It cannot be mapped to the relational model"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the standard method for mapping a binary M:N relationship (Step 5)?",
+    "options": [
+      "Adding a foreign key to the M-side relation",
+      "Adding a foreign key to the N-side relation",
+      "Creating a new relation that includes foreign keys from both participating entity types",
+      "Merging both entity types into one large table"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In the new relation created for an M:N relationship, what forms the Primary Key?",
+    "options": [
+      "A generated unique ID",
+      "The combination of foreign keys referencing the participating entities",
+      "The foreign key of the M-side entity only",
+      "The attributes of the relationship itself"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "How are attributes of an M:N relationship type handled during mapping?",
+    "options": [
+      "They are discarded",
+      "They are attached to the M-side entity relation",
+      "They are attached to the N-side entity relation",
+      "They are included as attributes of the new relation created for the relationship"
+    ],
+    "correct": 3
+  },
+  {
+    "q": "Step 6 involves mapping Multivalued Attributes. How is this achieved?",
+    "options": [
+      "By creating multiple columns in the main entity relation (e.g., color1, color2)",
+      "By storing values as a comma-separated string",
+      "By creating a new relation containing the attribute and a foreign key to the entity",
+      "By creating a weak entity for the attribute"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What is the Primary Key of the relation created for a multivalued attribute?",
+    "options": [
+      "The foreign key linking to the main entity",
+      "The value of the multivalued attribute itself",
+      "The combination of the foreign key and the attribute value",
+      "A sequential number"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "For an N-ary relationship (where n > 2), what is the correct mapping strategy?",
+    "options": [
+      "Map it as multiple binary 1:N relationships",
+      "Create a new relation containing foreign keys from all participating entity relations",
+      "Place a foreign key in the entity relation with the highest cardinality",
+      "Merge all participating entities into one relation"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the Company database example, the 'Dependent' entity is mapped using which key combination as its Primary Key?",
+    "options": [
+      "Dependent_Name",
+      "SSN (of Employee)",
+      "SSN (of Employee) + Dependent_Name",
+      "Dependent_ID"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Why is the Foreign Key approach preferred over the Cross-reference approach for 1:N relationships?",
+    "options": [
+      "It reduces the number of tables (joins) required for queries",
+      "It allows for M:N relationships",
+      "It supports null values better",
+      "It uses less disk space for the primary key"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "In the 'Works_On' M:N relationship example, what attributes are included in the 'WORKS_ON' relation?",
+    "options": [
+      "SSN, PNO",
+      "SSN, PNO, Hours",
+      "SSN, Hours",
+      "PNO, Hours"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a composite key is used as a Primary Key in an entity, how does it appear when used as a Foreign Key in another relation?",
+    "options": [
+      "Only the first attribute of the composite key is used",
+      "A new surrogate key is created to represent it",
+      "The set of simple attributes forming the composite key must be included together",
+      "It cannot be used as a Foreign Key"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "What does the 'Cross-reference' or 'Relationship Relation' option involve?",
+    "options": [
+      "Setting up a third relation to cross-reference primary keys of two entities",
+      "Merging two tables",
+      "Deleting the relationship",
+      "Using a pointer in the physical file"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "In the mapping of the 'Department' entity, the attribute 'MgrStartdate' is included. Where does this attribute come from?",
+    "options": [
+      "It is an attribute of the Department entity",
+      "It is an attribute of the Employee entity",
+      "It is an attribute of the 1:1 'Manages' relationship type",
+      "It is a derived attribute"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "How is the 'Department Locations' multivalued attribute mapped in the Company schema?",
+    "options": [
+      "As a column 'Locations' in the DEPARTMENT table",
+      "As a relation DEPT_LOCATION with columns {DNUM, DLocation}",
+      "As a relation LOCATION with foreign key Dname",
+      "It is ignored in the relational model"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When mapping a weak entity, the relationship connecting it to the owner is called:",
+    "options": [
+      "The Identifying Relationship",
+      "The Weak Relationship",
+      "The Partial Relationship",
+      "The Associative Relationship"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "If an N-ary relationship has simple attributes, where are they mapped?",
+    "options": [
+      "To the relation representing the N-ary relationship",
+      "To the participating entity with the most records",
+      "They are discarded",
+      "To a separate attribute table"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Which step handles the mapping of 'Supervision' (a relationship between Employee and itself)?",
+    "options": [
+      "Step 1 (Regular Entities)",
+      "Step 4 (Binary 1:N Relationships)",
+      "Step 2 (Weak Entities)",
+      "Step 5 (Binary M:N Relationships)"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "The schema 'SUPPLY(Sno, Pno, Jno, Qty)' corresponds to which type of relationship?",
+    "options": [
+      "Binary M:N",
+      "Ternary Relationship",
+      "Weak Entity Identifying Relationship",
+      "Unary Relationship"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the 'Foreign Key approach' for 1:1 relationships, why is it better to map the FK to the entity with total participation?",
+    "options": [
+      "To avoid null values in the foreign key attribute",
+      "To increase the size of the table",
+      "To allow multiple values",
+      "Because the other entity does not exist"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "When mapping a regular (strong) entity, which key is chosen as the Primary Key of the relation?",
+    "options": [
+      "Any candidate key",
+      "One of the key attributes of the entity type",
+      "The longest attribute",
+      "The numeric attribute"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the Foreign Key in the 'PROJECT' relation of the Company schema?",
+    "options": [
+      "Pno",
+      "Pname",
+      "Dnum (referencing Department)",
+      "MgrSSN"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "If a relationship type has a cardinality ratio of 1:1 and partial participation on both sides, which mapping option is typically avoided to prevent extensive nulls?",
+    "options": [
+      "Cross-reference relation",
+      "Foreign Key approach",
+      "Merged relation",
+      "Entity attribute approach"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "The resulting relational database schema S contains a set of relation schemas and:",
+    "options": [
+      "A set of integrity constraints",
+      "A set of user passwords",
+      "The physical file paths",
+      "The original ER diagram"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "For the 'WORKS_ON' relation, the Primary Key {Essn, Pno} implies that:",
+    "options": [
+      "An employee can work on the same project multiple times",
+      "An employee can work on a project only once",
+      "A project can have only one employee",
+      "Employees and projects are the same entity"
+    ],
+    "correct": 1
+  }
+],
+    <!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+"ch7": [
+  {
+    "q": "The Enhanced-ER (EER) model is primarily distinguished from the standard ER model by the inclusion of which concepts?",
+    "options": [
+      "Keys and Normalization",
+      "Subclasses, Superclasses, and Inheritance",
+      "Tables and Foreign Keys",
+      "Transaction Processing"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which type of relationship characterizes the link between a Superclass and its Subclass (e.g., SECRETARY and EMPLOYEE)?",
+    "options": [
+      "HAS-A Relationship",
+      "IS-A Relationship",
+      "PART-OF Relationship",
+      "MANY-TO-MANY Relationship"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In the context of Attribute Inheritance, an entity in a subclass inherits:",
+    "options": [
+      "Only the primary key of the superclass",
+      "All attributes and relationships of the superclass",
+      "Only the specific attributes defined for the subclass",
+      "No attributes, only relationships"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the term for the process of defining a set of subclasses of a superclass based on distinguishing characteristics (Top-down approach)?",
+    "options": [
+      "Generalization",
+      "Specialization",
+      "Normalization",
+      "Aggregation"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which concept is described as the reverse of specialization, involving the suppression of differences among entity types to identify common features (Bottom-up approach)?",
+    "options": [
+      "Generalization",
+      "Classification",
+      "Instantiation",
+      "Identification"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "If membership in a subclass is determined by a specific condition (e.g., 'JobType = Secretary'), what type of subclass is this?",
+    "options": [
+      "User-defined subclass",
+      "Predicate-defined (or condition-defined) subclass",
+      "Attribute-defined subclass",
+      "Total subclass"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In an EER diagram, what does the symbol 'd' inside a circle represent regarding the subclasses?",
+    "options": [
+      "The subclasses are Dependent",
+      "The subclasses are Disjoint (mutually exclusive)",
+      "The subclasses are Derived",
+      "The subclasses are Dynamic"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a specialization allows an entity to be a member of more than one subclass simultaneously, which constraint applies and how is it denoted?",
+    "options": [
+      "Disjointness; denoted by 'd'",
+      "Overlap; denoted by 'o'",
+      "Completeness; denoted by a double line",
+      "Partial; denoted by a single line"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What does a double line connecting a superclass to a circle in an EER diagram signify?",
+    "options": [
+      "Disjointness Constraint",
+      "Total Completeness Constraint (every superclass entity must belong to a subclass)",
+      "Partial Completeness Constraint",
+      "Overlapping Constraint"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If a specialization is 'Attribute-defined', it means that:",
+    "options": [
+      "All subclasses have the same specific attributes",
+      "Membership in all subclasses is determined by the value of the same attribute in the superclass",
+      "The subclasses do not inherit attributes",
+      "The user manually assigns entities to subclasses"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "A 'Specialization Hierarchy' is characterized by which inheritance constraint?",
+    "options": [
+      "Multiple Inheritance (a subclass can have multiple superclasses)",
+      "Single Inheritance (every subclass has only one superclass)",
+      "Total Participation only",
+      "Disjoint subclasses only"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "A 'Shared Subclass' is a subclass that:",
+    "options": [
+      "Is shared between two different databases",
+      "Has more than one superclass",
+      "Has no specific attributes",
+      "Cannot participate in relationships"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "In a Specialization Lattice, a subclass inherits attributes from:",
+    "options": [
+      "Only its immediate superclass",
+      "Its direct superclass and all predecessor superclasses",
+      "Only the root superclass",
+      "None of the superclasses"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which notation represents a 'Partial Completeness' constraint (an entity in the superclass does not have to belong to any subclass)?",
+    "options": [
+      "A double line",
+      "A single line",
+      "A dashed line",
+      "A thick bold line"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When a subclass is 'User-defined', membership in the subclass is determined by:",
+    "options": [
+      "A predicate condition in the schema",
+      "The value of a defining attribute",
+      "Database users applying operations to add entities to the subclass",
+      "The database administrator only"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In the context of Generalization, the completeness constraint is usually:",
+    "options": [
+      "Partial",
+      "Total",
+      "User-defined",
+      "Disjoint"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which application area is cited as one where the basic ER model is inadequate, necessitating the EER model?",
+    "options": [
+      "Simple payroll systems",
+      "CAD/CAM and GIS",
+      "Basic inventory lists",
+      "Telephone directories"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Specific attributes (e.g., 'TypingSpeed' for SECRETARY) are associated with:",
+    "options": [
+      "The Superclass",
+      "The Subclass",
+      "The Relationship",
+      "The Identifying Attribute"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is the difference between a Hierarchy and a Lattice in EER modeling?",
+    "options": [
+      "A Hierarchy allows multiple inheritance, a Lattice does not",
+      "A Lattice allows multiple inheritance (subclass has >1 superclass), a Hierarchy does not",
+      "A Hierarchy is for generalization, a Lattice is for specialization",
+      "There is no difference"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "An entity cannot exist in the database merely by being a member of a subclass; it must also be a member of:",
+    "options": [
+      "The Superclass",
+      "The Relationship",
+      "Another Subclass",
+      "The Attribute Set"
+    ],
+    "correct": 0
+  }
+],
+    <!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+"ch8": [
+  {
+    "q": "What is the primary focus of 'Step 8' in the EER-to-Relational Mapping Algorithm?",
+    "options": [
+      "Mapping regular entities",
+      "Mapping N-ary relationships",
+      "Mapping Specialization or Generalization",
+      "Mapping weak entities"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Option 8A (Multiple relations - Superclass and subclasses) creates a relation for the superclass and separate relations for each subclass. What forms the primary key of the subclass relations?",
+    "options": [
+      "A new surrogate key",
+      "The primary key of the superclass",
+      "The specific attributes of the subclass",
+      "A boolean flag"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which of the following mapping options works for ANY specialization (total or partial, disjoint or overlapping)?",
+    "options": [
+      "Option 8A (Multiple relations - Superclass and subclasses)",
+      "Option 8B (Multiple relations - Subclass relations only)",
+      "Option 8C (Single relation with one type attribute)",
+      "Option 8D (Single relation with multiple type attributes)"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Option 8B (Multiple relations - Subclass relations only) eliminates the superclass relation. This option is only valid if the specialization is:",
+    "options": [
+      "Partial",
+      "Total",
+      "Disjoint",
+      "Attribute-defined"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "What is a significant drawback of using Option 8B for an 'Overlapping' specialization?",
+    "options": [
+      "It requires too many null values",
+      "It cannot handle specific attributes",
+      "An entity may be duplicated in several subclass relations",
+      "It requires a boolean type attribute"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In Option 8C (Single relation with one type attribute), how are the specific attributes of the subclasses handled?",
+    "options": [
+      "They are discarded",
+      "They are created in separate tables",
+      "They are all included in the single relation, potentially resulting in NULL values",
+      "They are converted to boolean flags"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Option 8C is best suited for which type of specialization to avoid data inconsistency regarding the type attribute?",
+    "options": [
+      "Overlapping",
+      "Disjoint",
+      "Total",
+      "Partial"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "If Option 8D (Single relation with multiple type attributes) is used, what is the nature of the type attributes added to the relation?",
+    "options": [
+      "A single integer code",
+      "A single string description",
+      "Boolean attributes indicating membership in each subclass",
+      "Foreign keys referencing a type table"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "Option 8D is primarily designed to handle which type of specialization within a single relation?",
+    "options": [
+      "Disjoint",
+      "Overlapping",
+      "Hierarchical",
+      "Lattice"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "When using Option 8A, if the Superclass 'Employee' has PK 'SSN', what attributes will the relation for the subclass 'Secretary' contain?",
+    "options": [
+      "Only the specific attributes of Secretary (e.g., TypingSpeed)",
+      "All attributes of Employee plus TypingSpeed",
+      "SSN and the specific attributes of Secretary (e.g., TypingSpeed)",
+      "A new ID and TypingSpeed"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In Option 8C, if the specialization is 'Attribute-defined' (e.g., defined by 'JobType'), do we need to add a new separate type attribute 't'?",
+    "options": [
+      "Yes, always",
+      "No, the defining attribute (JobType) serves the purpose of 't'",
+      "Yes, but only for total specializations",
+      "No, type attributes are never used in Option 8C"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which option results in the generation of many NULL values if the subclasses have many specific attributes?",
+    "options": [
+      "Option 8A",
+      "Option 8B",
+      "Option 8C",
+      "Option 8D (if sparse)"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "For the 'Vehicle' example where 'Car' and 'Truck' are subclasses, if we use Option 8B, how many relations will be created?",
+    "options": [
+      "One (Vehicle)",
+      "Three (Vehicle, Car, Truck)",
+      "Two (Car, Truck)",
+      "Four (Vehicle, Car, Truck, Type)"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "In Option 8D, if an entity belongs to multiple subclasses, how is this represented?",
+    "options": [
+      "Multiple rows in the table",
+      "Multiple columns (Boolean flags) set to True",
+      "A comma-separated string in one column",
+      "It is not allowed"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "Which mapping option maintains the most clear distinction between entity types but requires joining tables to retrieve full data for a subclass entity?",
+    "options": [
+      "Option 8A",
+      "Option 8B",
+      "Option 8C",
+      "Option 8D"
+    ],
+    "correct": 0
+  }
+]
+    };
+
+    // --- STATE & UTILS ---
+    let currentChapter = [];
+    let currentIndex = 0;
+    let score = 0;
+    let aiCache = {}; 
+
+    const ui = {
+        screens: { menu: document.getElementById('screen-menu'), quiz: document.getElementById('screen-quiz'), result: document.getElementById('screen-result') },
+        text: document.getElementById('question-text'),
+        options: document.getElementById('options-container'),
+        progress: document.getElementById('quiz-progress'),
+        aiBox: document.getElementById('ai-container'),
+        aiContent: document.getElementById('ai-content'),
+        nextBtn: document.getElementById('next-btn'),
+        scoreDisplay: document.getElementById('final-score'),
+        msgDisplay: document.getElementById('final-msg')
+    };
+
+    // --- APP LOGIC ---
+    function startChapter(ch) {
+        if(!database[ch] || database[ch].length === 0) return alert("Chapter coming soon!");
+        currentChapter = database[ch];
+        currentIndex = 0;
+        score = 0;
+        aiCache = {};
+        
+        currentChapter.sort(() => Math.random() - 0.5);
+        
+        showScreen('quiz');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = currentChapter[currentIndex];
+        
+        // Use innerHTML to allow math inside question text
+        ui.text.innerHTML = `${currentIndex + 1}. ${q.q}`;
+        ui.progress.innerText = `Question ${currentIndex + 1}/${currentChapter.length}`;
+        ui.options.innerHTML = '';
+        ui.aiBox.classList.remove('show');
+        ui.aiContent.innerHTML = '';
+        ui.nextBtn.disabled = true;
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerHTML = opt; // Use innerHTML for math in options
+            btn.onclick = () => handleAnswer(idx, btn);
+            ui.options.appendChild(btn);
+        });
+
+        // Trigger MathJax to render the new content
+        if (window.MathJax) {
+            MathJax.typesetPromise();
+        }
+    }
+
+    function handleAnswer(selectedIdx, btn) {
+        Array.from(ui.options.children).forEach(b => b.disabled = true);
+        
+        const q = currentChapter[currentIndex];
+        const correctIdx = q.correct;
+        
+        if(selectedIdx === correctIdx) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('incorrect');
+            ui.options.children[correctIdx].classList.add('correct');
+            fetchAIExplanation();
+        }
+        ui.nextBtn.disabled = false;
+    }
+
+    async function fetchAIExplanation() {
+        const q = currentChapter[currentIndex];
+        const cacheKey = q.q; // Use question text as key
+
+        ui.aiBox.classList.add('show');
+        
+        // 1. Check if we already have this explanation cached
+        if(aiCache[cacheKey]) {
+            ui.aiContent.innerHTML = aiCache[cacheKey];
+            if(window.MathJax) MathJax.typesetPromise();
+            return;
+        }
+
+        // 2. Show Loading Spinner
+        ui.aiContent.innerHTML = `
+            <div class="loader">
+                <div class="spinner"></div>
+                <span>Analyzing with ${AI_MODEL}...</span>
+            </div>
+        `;
+
+        // 3. Construct the Prompt for the AI
+        const prompt = `
+            You are a helpful Statistics Tutor.
+            Question: "${q.q}"
+            Options: ${q.options.join(', ')}
+            Correct Answer Index: ${q.correct} (The answer is "${q.options[q.correct]}")
+            
+            Task: Explain clearly why the correct answer is right and why the others are wrong. 
+            Keep it concise (max 3 sentences). Use Markdown bolding for key terms.
+        `;
+
+        try {
+            // 4. Make the REAL API Call to Groq
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${GROQ_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: prompt }],
+                    model: AI_MODEL,
+                    temperature: 0.3,
+                    max_tokens: 150
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const rawAiText = data.choices[0].message.content;
+
+            // 5. Format the output (Markdown to HTML)
+            // Simple converter for bolding **text**
+            const formattedText = rawAiText
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            // 6. Save to cache and display
+            aiCache[cacheKey] = formattedText;
+            ui.aiContent.innerHTML = formattedText;
+
+            // Re-render Math symbols if the AI used any
+            if(window.MathJax) MathJax.typesetPromise();
+
+        } catch (err) {
+            console.error(err);
+            ui.aiContent.innerHTML = `<span style="color:var(--error-text)">
+                <strong>Connection Error:</strong> Could not reach the AI. <br>
+                Check your internet or API Key.
+            </span>`;
+        }
+    }
+
+    function nextQuestion() {
+        if(currentIndex < currentChapter.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        showScreen('result');
+        const pct = Math.round((score / currentChapter.length) * 100);
+        ui.scoreDisplay.innerText = `${pct}%`;
+        ui.msgDisplay.innerText = pct >= 80 ? "Excellent mastery of Statistics!" : "Good effort! Keep reviewing.";
+    }
+
+    function showScreen(name) {
+        Object.values(ui.screens).forEach(s => s.classList.remove('active'));
+        ui.screens[name].classList.add('active');
+    }
+
+</script>
+</body>
+</html>
+
+
